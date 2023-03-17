@@ -1,6 +1,8 @@
 # [Advanced Tuplets](https://musescore.org/project/advanced-tuplets)
 A MuseScore plugin for more precise &amp; customisable tuplet input.
 
+### [Download](https://github.com/XiaoMigros/advanced-tuplets/archive/main.zip)
+
 ## Features:
 - See the actual length of the tuplets you input, not just the ratio
 - The plugin detects invalid tuplets before they are created
