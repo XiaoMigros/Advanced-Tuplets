@@ -1,29 +1,34 @@
 //=====================
-// TUPLET TOOL UI
-// v1.0
+// Advanced Tuplets
+// Copyright (C) XiaoMigros 2023
+// v1.0.1
 // changelog:
+// bug fixes for tuplet dot values
+// bug fixes for initialising values
 //=====================
 
-import QtQuick 2.0;
-import QtQuick.Dialogs 1.2;
+import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.3
 import QtQuick.Window 2.3
 import QtQuick.Controls 1.5
-import Qt.labs.settings 1.0;
-import MuseScore 3.0;
+import Qt.labs.settings 1.0
+import MuseScore 3.0
 import "tools/Tuplet Tool.js" as TT
 import "lists"
 
 MuseScore {
 	menuPath: "Plugins." + qsTr("Add Tuplet")
 	description: qsTr("A more precise & easily customisable tuplet input option.")
-	version: "1.0"
+	version: "1.0.1"
+	requiresScore: true;
 	property var error: false;
 	property var cur;
 	property bool busy;
 	property bool add: false;
 	
-	property var tupletA: tuplet1N.value
+	property var tupletA: tuplet1N.value * (tuplet2T.model.get(tuplet2T.currentIndex).n / tuplet2T.model.get(tuplet2T.currentIndex).n)
+		//always 1, needed for var to initialise on launch for some reason
 	property var tupletB: (tuplet1D.model.get(tuplet1D.currentIndex).fact *
 				(tuplet1T.model.get(tuplet1T.currentIndex).n / tuplet1T.model.get(tuplet1T.currentIndex).d))
 	property var tupletC: (tuplet2N.value * tuplet2T.model.get(tuplet2T.currentIndex).n)
@@ -41,6 +46,7 @@ MuseScore {
     }//Component
 	
 	onRun: {
+		console.log(tupletA, tupletB, tupletX, tupletC, tupletD)
 		cur = curScore.newCursor()
 		cur.inputStateMode = Cursor.INPUT_STATE_SYNC_WITH_SCORE
 		tupletWindow.visible = true
@@ -224,6 +230,7 @@ MuseScore {
 				id: tupletCancelButton
 				text: qsTr("Cancel")
 				onClicked: {
+					console.log("cancelled tuplet creation")
 					smartQuit()
 				}
 			}//leftbutton
