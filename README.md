@@ -1,4 +1,4 @@
-# Advanced Tuplets
+# [Advanced Tuplets](https://musescore.org/project/advanced-tuplets)
 A MuseScore plugin for more precise &amp; customisable tuplet input.
 
 ## Features:
