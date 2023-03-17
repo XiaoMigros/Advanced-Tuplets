@@ -7,7 +7,12 @@ A MuseScore plugin for more precise &amp; customisable tuplet input.
 - Copy notes into the tuplet, instead of the tuplet simply replacing them
 - Completely customisable length, no need for the split measures hack
 - MuseScore 3 and 4 compatible
+### Changelog
+#### v1.0.1
+- Fixed bug where some dotted tuplets were incorrectly declared invalid
+- Fixed bug where the plugin didn't correctly apply saved settings
 
+## Screenshots
 ![Plugin Window Screenshot](https://github.com/XiaoMigros/Advanced-Tuplets/blob/main/example.png)
 
 ## Installation
