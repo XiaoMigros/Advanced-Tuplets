@@ -8,6 +8,8 @@ A MuseScore plugin for more precise &amp; customisable tuplet input.
 - Completely customisable length, no need for the split measures hack
 - MuseScore 3 and 4 compatible
 
+![Plugin Window Screenshot](https://github.com/XiaoMigros/Advanced-Tuplets/blob/main/example.png)
+
 ## Installation
 Download [all the files](https://github.com/XiaoMigros/advanced-tuplets/archive/main.zip), unzip them and move them to MuseScore's plugins folder.
 
