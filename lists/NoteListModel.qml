@@ -10,4 +10,8 @@ ListModel {
 	ListElement {text: qsTr("16th(s)");				fact: 0.0625}
 	ListElement {text: qsTr("32nd(s)");				fact: 0.03125}
 	ListElement {text: qsTr("64th(s)");				fact: 0.015625}
+	ListElement {text: qsTr("128th(s)");			fact: 0.0078125}
+	ListElement {text: qsTr("256th(s)");			fact: 0.00390625}
+	ListElement {text: qsTr("512th(s)");			fact: 0.001953125}
+	ListElement {text: qsTr("1024th(s)");			fact: 0.0009765625}
 }
