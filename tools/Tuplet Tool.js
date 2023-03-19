@@ -1,13 +1,15 @@
 //=====================
 // TUPLET TOOL FUNCTION
-// v1.0
+// v1.1
 // changelog:
+// code simplifications
+// allow tuplet creation in last measure
 //=====================
 
 function createTuplet(tuplet1N, tuplet1D, tuplet2N, tuplet2D, includeNotes, numberType, bracketType) {
 	var error = false;
 	busy = true
-	curScore.startCmd();
+	curScore.startCmd()
 	console.log("Tuplet Tool: Running tuplet creation..")
 	console.log(tuplet1N, tuplet1D, tuplet2N, tuplet2D)
 	
@@ -16,22 +18,21 @@ function createTuplet(tuplet1N, tuplet1D, tuplet2N, tuplet2D, includeNotes, numb
 		//retrieve values
 		var startTick = cur.tick
 		var endTick = startTick + (tuplet2N * tuplet2D * division * 4.0)
-		var startStaf = cur.staffIdx
-		//add appendmeasures system from rebeamer
+		
+		curScore.appendMeasures(1)
 		cur.nextMeasure()
 		if (endTick <= cur.tick) {
 			
-			var tuplet1N2 = tuplet1N
 			var tuplet1D2 = ((tuplet2N * tuplet2D) / tuplet1D)
 			var tuplet2D2 = 1 / tuplet2D
 			
 			if (Math.round(tuplet1D2) == (tuplet1D2)) {
 				if (includeNotes) {
-					var tlength = (tuplet1N2/tuplet1D2) * (endTick-startTick)
+					var tlength = (tuplet1N/tuplet1D2) * (endTick-startTick)
 					var notes = logNotes(startTick, (startTick + tlength))
 				}
 				cur.rewindToTick(startTick)
-				cur.addTuplet(fraction(tuplet1N2, tuplet1D2), fraction(tuplet2N, tuplet2D2))
+				cur.addTuplet(fraction(tuplet1N, tuplet1D2), fraction(tuplet2N, tuplet2D2))
 				customiseTuplet(numberType, bracketType)
 				if (includeNotes) {
 					addNotes(startTick, endTick, notes)
@@ -45,12 +46,13 @@ function createTuplet(tuplet1N, tuplet1D, tuplet2N, tuplet2D, includeNotes, numb
 			error = 2
 			console.log("Error code " + error)
 		}
+		removeElement(curScore.lastMeasure)
 	} else {
 		error = 1
 		console.log("Error code " + error)
 	}
 	
-	curScore.endCmd();
+	curScore.endCmd()
 	busy = false
 	return error;
 }//createTuplet
