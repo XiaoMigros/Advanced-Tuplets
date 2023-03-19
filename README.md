@@ -20,10 +20,4 @@ A MuseScore plugin for more precise &amp; customisable tuplet input.
 ## Installation
 Download [all the files](https://github.com/XiaoMigros/advanced-tuplets/archive/main.zip), unzip them and move them to MuseScore's plugins folder.
 
-For more help installing this plugin, visit [this page](https://musescore.org/en/handbook/3/plugins#installation).
-
-## Usage
-Running the plugin via plugins tab or via a shortcut opens the tuplet input window. If the plugin thinks the currently entered tuplet is invalid, it won't allow it to be created.<br/>
-If the tuplet is valid, pressing OK will add it to the currently selected note/rest. If no note/rest is selected, the plugin will retroactively create the tuplet on the next selected note/rest.
-
-The plugin also features a primitive corruption detection mechanism. It's possible to create these tuplets regardless, but do so at your own risk.
+For more help installing this plugin, visit [this page](https://musescore.org/en/handbook/3/plugins#installation)
