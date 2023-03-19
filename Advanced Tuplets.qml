@@ -1,10 +1,11 @@
 //=====================
 // Advanced Tuplets
 // Copyright (C) XiaoMigros 2023
-// v1.0.1
+// v1.1
 // changelog:
-// bug fixes for tuplet dot values
-// bug fixes for initialising values
+// input shorter note values
+// corruption detection
+// bug fix: allow tuplet creation in last measure of score
 //=====================
 
 import QtQuick 2.0
@@ -18,25 +19,26 @@ import "tools/Tuplet Tool.js" as TT
 import "lists"
 
 MuseScore {
-	menuPath: "Plugins." + qsTr("Add Tuplet")
-	description: qsTr("A more precise & easily customisable tuplet input option.")
-	version: "1.0.1"
-	requiresScore: true;
-	property var error: false;
-	property var cur;
-	property bool busy;
-	property bool add: false;
+	menuPath:		"Plugins." + qsTr("Add Tuplet")
+	description:	qsTr("A more precise & easily customisable tuplet input option.")
+	version:		"1.1"
+	requiresScore:	true;
+	property var	error: false;
+	property var	cur;
+	property bool	busy;
+	property bool	add: false;
 	
-	property var tupletA: tuplet1N.value * (tuplet2T.model.get(tuplet2T.currentIndex).n / tuplet2T.model.get(tuplet2T.currentIndex).n)
-		//always 1, needed for var to initialise on launch for some reason
-	property var tupletB: (tuplet1D.model.get(tuplet1D.currentIndex).fact *
-				(tuplet1T.model.get(tuplet1T.currentIndex).n / tuplet1T.model.get(tuplet1T.currentIndex).d))
-	property var tupletC: (tuplet2N.value * tuplet2T.model.get(tuplet2T.currentIndex).n)
-	property var tupletD: (tuplet2D.model.get(tuplet2D.currentIndex).fact / tuplet2T.model.get(tuplet2T.currentIndex).d)
-	property var tupletX: tupletC * tupletD / tupletB
-	property bool invalid: Math.round(tupletX) != tupletX
-	property var bracketType: bracketauto.checked ? 0 : (bracketbracket.checked ? 1 : 2)
-	property var numberType: numbernumber.checked ? 0 : (numberratio.checked ? 1 : 2)
+	property var	tupletA: tuplet1N.value * (tuplet2T.model.get(tuplet2T.currentIndex).n / tuplet2T.model.get(tuplet2T.currentIndex).n)
+						//always 1, needed for var to initialise on launch for some reason
+	property var	tupletB: (tuplet1D.model.get(tuplet1D.currentIndex).fact *
+						(tuplet1T.model.get(tuplet1T.currentIndex).n / tuplet1T.model.get(tuplet1T.currentIndex).d))
+	property var	tupletC: (tuplet2N.value * tuplet2T.model.get(tuplet2T.currentIndex).n)
+	property var	tupletD: (tuplet2D.model.get(tuplet2D.currentIndex).fact / tuplet2T.model.get(tuplet2T.currentIndex).d)
+	property var	tupletX: tupletC * tupletD / tupletB
+	property bool	invalid: Math.round(tupletX) != tupletX
+	property bool	corrupt: Math.round(tupletA * tupletB * 1024) != (tupletA * tupletB * 1024) || Math.round(tupletC * tupletD * 1024) != (tupletC * tupletD * 1024)
+	property var	bracketType: bracketauto.checked ? 0 : (bracketbracket.checked ? 1 : 2)
+	property var	numberType: numbernumber.checked ? 0 : (numberratio.checked ? 1 : 2)
 	
 	Component.onCompleted : {
         if (mscoreMajorVersion >= 4) {
@@ -81,13 +83,11 @@ MuseScore {
 		id: tupletWindow
 		title: qsTr("Add Tuplet")
 		visible: false
-		height: tupletValues.height + buttonsRow.height + 30
-		width: Math.max(tupletValues.width, buttonsRow.width) + 20
+		maximumHeight: tupletValues.height + buttonsRow.height + 30
+		maximumWidth: Math.max(tupletValues.width, buttonsRow.width) + 20
+		minimumHeight: tupletValues.height + buttonsRow.height + 30
+		minimumWidth: Math.max(tupletValues.width, buttonsRow.width) + 20
 		flags: Qt.Dialog
-		maximumHeight: height
-		maximumWidth: width
-		minimumHeight: height
-		minimumWidth: width
 		
 		ColumnLayout {
 			id: tupletValues
@@ -108,11 +108,11 @@ MuseScore {
 				implicitWidth: 60; implicitHeight: 30;}//spinbox
 				
 				ComboBox {id: tuplet1T; implicitWidth: 120; height: 30;
-					currentIndex: 0; model: TupletDotListModel {}
+					currentIndex: 0; model: DotListModel {}
 				}//combobox
 				
 				ComboBox {id: tuplet1D; implicitWidth: 120; height: 30;
-					currentIndex: 4; model: TupletNoteListModel {}
+					currentIndex: 4; model: NoteListModel {}
 				}//combobox
 			}
 			
@@ -128,11 +128,11 @@ MuseScore {
 				implicitWidth: 60; implicitHeight: 30;}//spinbox
 				
 				ComboBox {id: tuplet2T; implicitWidth: 120; height: 30;
-					currentIndex: 0; model: TupletDotListModel {}
+					currentIndex: 0; model: DotListModel {}
 				}//combobox
 				
 				ComboBox {id: tuplet2D; implicitWidth: 120; height: 30;
-					currentIndex: 3; model: TupletNoteListModel {}
+					currentIndex: 3; model: NoteListModel {}
 				}//combobox
 			}//rowlayout
 			
@@ -206,8 +206,10 @@ MuseScore {
 			
 			Label {
 				anchors.horizontalCenter: parent.horizontalCenter
-				text: qsTr("Hint") + ": " + 
-					(invalid ? qsTr("The currently entered tuplet is probably invalid.") : ("Select a note/rest in the score to add the tuplet."))
+				text: (qsTr("Hint") + ": " + 
+					(invalid ? qsTr("This tuplet is probably invalid.") :
+					(corrupt ? qsTr("This tuplet might cause corruptions on the score") :
+					qsTr("Select a note/rest in the score to add the tuplet."))))
 				font.italic: true
 			}
 		}//Column
@@ -222,7 +224,7 @@ MuseScore {
 				id: tupletHelpButton
 				text: qsTr("Help")
 				onClicked: {
-					Qt.openUrlExternally("https://github.com/xiaomigros/advanced-tuplets#readme")
+					Qt.openUrlExternally("https://github.com/XiaoMigros/Advanced-Tuplets#usage")
 				}
 			}//leftbutton
 					
@@ -291,6 +293,7 @@ MuseScore {
 				break;
 			}
 		}//switch
+		console.log(error)
 		errorDialog.open()
 	}
 	
