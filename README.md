@@ -10,6 +10,10 @@ A MuseScore plugin for more precise &amp; customisable tuplet input.
 - Completely customisable length, no need for the split measures hack
 - MuseScore 3 and 4 compatible
 ### Changelog
+#### v1.1
+- Input smaller notes (128th-1024th)
+- Basic corruption detection system
+- Bug fix: tuplets can now be created in the last measure of a score
 #### v1.0.1
 - Fixed bug where some dotted tuplets were incorrectly declared invalid
 - Fixed bug where the plugin didn't correctly apply saved settings
