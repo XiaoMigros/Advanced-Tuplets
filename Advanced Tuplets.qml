@@ -1,11 +1,13 @@
 //=====================
 // Advanced Tuplets
 // Copyright (C) XiaoMigros 2023
-// v1.1
+// v1.2
 // changelog:
-// input shorter note values
-// corruption detection
-// bug fix: allow tuplet creation in last measure of score
+// support for nested tuplets
+// bug fix: improved bracket section UI
+// added more informative hint messages
+// copied notes contain additional information
+// improved corruption detection
 //=====================
 
 import QtQuick 2.0
@@ -21,7 +23,7 @@ import "lists"
 MuseScore {
 	menuPath:		"Plugins." + qsTr("Add Tuplet")
 	description:	qsTr("A more precise & easily customisable tuplet input option.")
-	version:		"1.1"
+	version:		"1.2"
 	requiresScore:	true;
 	property var	error: false;
 	property var	cur;
@@ -35,10 +37,20 @@ MuseScore {
 	property var	tupletC: (tuplet2N.value * tuplet2T.model.get(tuplet2T.currentIndex).n)
 	property var	tupletD: (tuplet2D.model.get(tuplet2D.currentIndex).fact / tuplet2T.model.get(tuplet2T.currentIndex).d)
 	property var	tupletX: tupletC * tupletD / tupletB
-	property bool	invalid: Math.round(tupletX) != tupletX
-	property bool	corrupt: Math.round(tupletA * tupletB * 1024) != (tupletA * tupletB * 1024) || Math.round(tupletC * tupletD * 1024) != (tupletC * tupletD * 1024)
 	property var	bracketType: bracketauto.checked ? 0 : (bracketbracket.checked ? 1 : 2)
 	property var	numberType: numbernumber.checked ? 0 : (numberratio.checked ? 1 : 2)
+	
+	//Hint message display
+	property bool 	tooLong: (cur.element && ((cur.element.type == Element.CHORD || cur.element.type == Element.REST || cur.element.type == Element.NOTE) &&
+						((cur.selection.isRange ? Cursor.SELECTION_START : cur.tick) + (tupletC * tupletD * division * 4.0) > (cur.measure.firstSegment.tick +
+						(division * 4.0  * cur.measure.timesigActual.numerator / cur.measure.timesigActual.denominator)))))
+	property bool	badValues: Math.round(tupletX) != tupletX
+	property bool	invalid:  badValues || tooLong
+	
+	property bool	invalidNoteLength: Math.round(tupletA * tupletB * 1024) != (tupletA * tupletB * 1024) || Math.round(tupletC * tupletD * 1024) != (tupletC * tupletD * 1024)
+	property bool	nqNestedTuplet: (cur.element && cur.element.tuplet) //if the tuplet is in a tuplet and extends out of it
+	property bool	corrupt: invalidNoteLength || nqNestedTuplet
+	//hierarchy too display: badValues -> toolong -> nqNestedTuplet -> invalidNoteLength
 	
 	Component.onCompleted : {
         if (mscoreMajorVersion >= 4) {
@@ -142,39 +154,42 @@ MuseScore {
 				implicitWidth: parent.width
 				enabled: ! invalid
 				opacity: enabled ? 1.0 : 0.5
+				
+				RowLayout {
+					spacing: 10
+					anchors.margins: 0
+					anchors.fill: parent
 					
-				GroupBox {
-					id: tupletNumber
-					title: qsTr("Number")
-					implicitWidth: (parent.width - 10) / 2
-					anchors.left: parent.left
-					
-					ColumnLayout {
-						anchors.margins: 10;
-						spacing: 10
+					GroupBox {
+						id: tupletNumber
+						title: qsTr("Number")
+						implicitWidth: (parent.width - 10) / 2
 						
-						ExclusiveGroup {id: numberGroup}
-						
-						RadioButton {id: numbernumber; checked: true;
-							exclusiveGroup: numberGroup
-							text: qsTr("Number") + (invalid ? "" : (" (" + tupletA + ")"))
-						}
-						RadioButton {id: numberratio; checked: false;
-							exclusiveGroup: numberGroup
-							text: qsTr("Ratio") + (invalid ? "" : " (" + tupletA + ":" + tupletX + ")")
-						}
-						RadioButton {id: numbernone; checked: false;
-							exclusiveGroup: numberGroup
-							text: qsTr("None")
-						}
-					}//columnlayout
-				}//groupbox
+						ColumnLayout {
+							anchors.margins: 10;
+							spacing: 10
+							
+							ExclusiveGroup {id: numberGroup}
+							
+							RadioButton {id: numbernumber; checked: true;
+								exclusiveGroup: numberGroup
+								text: qsTr("Number") + (badValues ? "" : (" (" + tupletA + ")"))
+							}
+							RadioButton {id: numberratio; checked: false;
+								exclusiveGroup: numberGroup
+								text: qsTr("Ratio") + (badValues ? "" : " (" + tupletA + ":" + tupletX + ")")
+							}
+							RadioButton {id: numbernone; checked: false;
+								exclusiveGroup: numberGroup
+								text: qsTr("None")
+							}
+						}//columnlayout
+					}//groupbox
 					
 					GroupBox {
 						id: tupletBracket
 						title: qsTr("Bracket")
 						implicitWidth: (parent.width - 10) / 2
-						anchors.right: parent.right
 						
 						ColumnLayout {
 							anchors.margins: 10;
@@ -196,6 +211,7 @@ MuseScore {
 							}
 						}//columnlayout
 					}//groupbox
+				}
 			}//GroupBox
 			
 			CheckBox {id: addNotes; text: qsTr("Copy Notes into Tuplet"); checked: true;
@@ -207,8 +223,10 @@ MuseScore {
 			Label {
 				anchors.horizontalCenter: parent.horizontalCenter
 				text: (qsTr("Hint") + ": " + 
-					(invalid ? qsTr("This tuplet is probably invalid.") :
-					(corrupt ? qsTr("This tuplet might cause corruptions on the score") :
+					(invalid ? (badValues ? qsTr("The ratio of this tuplet is invalid.") :
+					qsTr("This tuplet extends over a barline.")) :
+					(corrupt ? ((invalidNoteLength ? qsTr("This tuplet contains small note lengths.") :
+					qsTr("This tuplet will create overlapping tuplets.")) + "\n" + qsTr("Your score may get corrupted.")) :
 					qsTr("Select a note/rest in the score to add the tuplet."))))
 				font.italic: true
 			}
@@ -286,6 +304,10 @@ MuseScore {
 			}
 			case 3: {
 				error = qsTr("Error: Cannot create tuplet with entered ratio and duration")
+				break;
+			}
+			case 4: {
+				error = qsTr("Error: Nested tuplets cannot extend out of the parent tuplet")
 				break;
 			}
 			default: {
