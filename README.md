@@ -29,7 +29,7 @@ A MuseScore plugin for more precise &amp; customisable tuplet input.
 ## Installation
 Download [all the files](https://github.com/XiaoMigros/advanced-tuplets/archive/main.zip), unzip them and move them to MuseScore's plugins folder.
 
-For more help installing this plugin, see the handbook: [MuseScore 3](https://musescore.org/en/handbook/3/plugins#installation) [MuseScore 4](https://musescore.org/en/handbook/4/plugins#Installing_a_new_plugin).
+For more help installing this plugin, see the handbook: [MuseScore 3](https://musescore.org/en/handbook/3/plugins#installation) | [MuseScore 4](https://musescore.org/en/handbook/4/plugins#Installing_a_new_plugin).
 
 ## Usage
 Running the plugin via plugins tab or via a shortcut opens the tuplet input window. If the plugin thinks the currently entered tuplet is invalid, it won't allow it to be created.<br/>
